@@ -98,21 +98,21 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 ENV PIP_NO_CACHE_DIR="true"
 
 RUN apt-get update \
-    && curl -sL https://deb.nodesource.com/setup_13.x | sudo bash - \
+    && curl -sL https://deb.nodesource.com/setup_16.x | sudo bash - \
     && apt-get install -y --no-install-recommends \
         build-essential \
         default-libmysqlclient-dev \
+        git \
         libffi-dev \
         libkrb5-dev \
         libpq-dev \
         libsasl2-dev \
         libssl-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+        nodejs \
+        openssh-client
 
-ARG VERSION="2.1.4-6"
+ARG AIRFLOW_REF="certified-v2.1.4+astro.6"
 ARG SUBMODULES="async,azure,amazon,celery,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
-ARG AIRFLOW_MODULE="astronomer_certified[${SUBMODULES}]==$VERSION"
 ARG AIRFLOW_VERSION="2.1.4"
 ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.8.4"
 
@@ -128,11 +128,18 @@ COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 
 # Pip install airflow and astro security manager
-RUN pip install "${AIRFLOW_MODULE}" \
-        --constraint /tmp/build-time-pip-constraints.txt \
+RUN --mount=type=ssh mkdir ~/.ssh/ \
+    && echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts \
+    && echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOa2gCDqly40Uoe9WuxF63vbviwn5eph0nIRHyTfhUy" >> ~/.ssh/airflow-private-gh-circleci.pub \
+    && GIT_SSH_COMMAND="ssh -i ~/.ssh/airflow-private-gh-circleci.pub" \
+    git clone -v git@github.com:astronomer/airflow-private.git /tmp/airflow/ \
+    && cd /tmp/airflow/ \
+    && git checkout ${AIRFLOW_REF} \
+    && npm install -g yarn \
+    && /tmp/airflow/airflow/www/compile_assets.sh \
+    && pip install /tmp/airflow[$SUBMODULES] --constraint /tmp/build-time-pip-constraints.txt \
     && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
-
 
 ## move this to same layer as airflow because its from tag.
 
@@ -162,7 +169,7 @@ COPY include/pip.conf /etc/pip.conf
 COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 
 # Pin apache-airflow version to avoid accidental upgrade
-RUN pip freeze | grep "apache-airflow==" >>  /usr/local/share/astronomer-pip-constraints.txt
+RUN echo "apache-airflow==${AIRFLOW_VERSION}" >>  /usr/local/share/astronomer-pip-constraints.txt
 
 RUN sed -i \
     # Run pods spun up by Kubernetes Executor as astro user

@@ -30,15 +30,6 @@ workflows:
       {%- set dev_build = "true" if "dev" in ac_version else "false" %}
       {%- set edge_build = ac_version | is_edge_build %}
 
-      # {{ airflow_version }}
-      {%- if edge_build %}
-      - download-file:
-          name: download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
-          url: https://pip.astronomer.io/simple/astronomer-certified/{{ ext_build_filename }}
-          file: {{ ext_build_filename }}
-          output_file: extra-tags-{{ airflow_version_wout_dev }}.txt
-      {%- endif %}{# edge_build #}
-
       {%- for distribution in distributions %}
       # {{ airflow_version }} - {{ distribution }}
       - build:
@@ -78,9 +69,6 @@ workflows:
           {%- endif %}
           requires:
             - static-checks
-            {%- if edge_build %}
-            - download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
-            {%- endif %}
       - scan-trivy:
           name: scan-trivy-{{ airflow_version }}-{{ distribution }}-onbuild
           airflow_version: {{ airflow_version }}
@@ -468,6 +456,9 @@ jobs:
         type: string
         default: "ap-airflow:2.2.0"
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "e5:8c:51:5e:15:31:0e:c8:44:c9:fc:76:3a:4c:23:6e"
       - docker-build-base-and-onbuild:
           airflow_version: "<< parameters.airflow_version >>"
           distribution_name: "<< parameters.distribution_name >>"
@@ -616,7 +607,7 @@ orbs:
 executors:
   docker-executor:
     docker:
-      - image: circleci/python:3
+      - image: cimg/python:3.10
   machine-executor:
     machine:
       image: ubuntu-2004:202010-01
@@ -645,6 +636,7 @@ commands:
     steps:
       - checkout
       - setup_remote_docker:
+          version: "20.10.12"
           docker_layer_caching: true
       - docker-build:
           image_name: "<< parameters.image_name >>"
@@ -688,7 +680,8 @@ commands:
           command: |
             set -xe
             mkdir -p saved-images/"$(dirname '<< parameters.image_name >>')"
-            docker build $([[ "<< parameters.edge_build >>" == "true" ]] && printf -- "--no-cache") \
+            DOCKER_BUILDKIT=1 docker build $([[ "<< parameters.edge_build >>" == "true" ]] && printf -- "--no-cache") \
+              --ssh default \
               --tag '<< parameters.image_name >>' \
               --label io.astronomer.docker.build_time="$(date +%s)" \
               --label io.astronomer.repo.commit_sha="${CIRCLE_SHA1}" \
