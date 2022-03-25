@@ -115,6 +115,7 @@ ARG AIRFLOW_REF="certified-v2.1.4+astro.6"
 ARG SUBMODULES="async,azure,amazon,celery,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
 ARG AIRFLOW_VERSION="2.1.4"
 ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.8.4"
+ARG SSH_PUB_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOa2gCDqly40Uoe9WuxF63vbviwn5eph0nIRHyTfhUy"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.
@@ -130,14 +131,14 @@ COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 # Pip install airflow and astro security manager
 RUN --mount=type=ssh mkdir ~/.ssh/ \
     && echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts \
-    && echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOa2gCDqly40Uoe9WuxF63vbviwn5eph0nIRHyTfhUy" >> ~/.ssh/airflow-private-gh-circleci.pub \
+    && echo "${SSH_PUB_KEY}" >> ~/.ssh/airflow-private-gh-circleci.pub \
     && GIT_SSH_COMMAND="ssh -i ~/.ssh/airflow-private-gh-circleci.pub" \
     git clone -v git@github.com:astronomer/airflow-private.git /tmp/airflow/ \
     && cd /tmp/airflow/ \
     && git checkout ${AIRFLOW_REF} \
     && npm install -g yarn \
-    && /tmp/airflow/airflow/www/compile_assets.sh \
-    && pip install /tmp/airflow[$SUBMODULES] --constraint /tmp/build-time-pip-constraints.txt \
+    && python setup.py compile_assets bdist_wheel \
+    && pip install dist/$(ls dist)[$SUBMODULES] --constraint /tmp/build-time-pip-constraints.txt \
     && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
 
