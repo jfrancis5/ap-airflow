@@ -400,6 +400,8 @@ def test_airflow_in_constraints(scheduler):
     Test that the installed Airflow version is added in constraints file to avoid accidental upgrades
     """
     installed_airflow_version = scheduler.pip_package.get_packages()["apache-airflow"]["version"]
+    # build metadata is ignored when determining version precedence, so we can safely trim it
+    installed_airflow_version = installed_airflow_version.split('+')[0]
     pip_constraints_file = scheduler.file("/usr/local/share/astronomer-pip-constraints.txt").content_string
 
     assert installed_airflow_version in pip_constraints_file
