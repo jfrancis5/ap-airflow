@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 ARG APT_DEPS_IMAGE="airflow-apt-deps"
 ARG PYTHON_MAJOR_MINOR_VERSION="3.9"
 ARG PYTHON_BASE_IMAGE="python:${PYTHON_MAJOR_MINOR_VERSION}-slim-bullseye"
@@ -107,14 +108,17 @@ RUN apt-get update \
         libpq-dev \
         libsasl2-dev \
         libssl-dev \
+        git \
+        nodejs \
+        openssh-client \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.3.3-1"
+ARG VERSION="2.3.2-2"
+ARG AIRFLOW_REF="2.3.2+astro.1"
 ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
-ARG AIRFLOW_MODULE="astronomer_certified[${SUBMODULES}]==$VERSION"
-ARG AIRFLOW_VERSION="2.3.3"
-ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
+ARG AIRFLOW_MODULE="apache_airflow[${SUBMODULES}]==2.3.2"
+ARG AIRFLOW_VERSION="2.3.2"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.
@@ -128,10 +132,11 @@ COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 
 # Pip install airflow and astro security manager
-RUN pip install "${AIRFLOW_MODULE}" celery flower \
-        --constraint /tmp/build-time-pip-constraints.txt \
-    && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
-    && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
+COPY airflow_wheels/ /tmp/airflow_wheels
+RUN pip install /tmp/airflow_wheels/*.whl
+COPY ac_wheels/ /tmp/ac_wheels
+RUN pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
+    && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
 
 
 ## move this to same layer as airflow because its from tag.

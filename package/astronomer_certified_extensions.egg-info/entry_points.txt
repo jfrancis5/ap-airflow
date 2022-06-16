@@ -1,2 +1,0 @@
-[airflow.plugins]
-astronomer_certified_extensions = astronomer.certified.plugin:AstronomerCertifiedPlugin
