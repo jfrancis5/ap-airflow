@@ -108,9 +108,6 @@ RUN apt-get update \
         libpq-dev \
         libsasl2-dev \
         libssl-dev \
-        git \
-        nodejs \
-        openssh-client \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
