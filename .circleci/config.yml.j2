@@ -555,6 +555,8 @@ jobs:
     description: Build Airflow wheel
     steps:
       - checkout
+      - node/install:
+          node-version: '16.15'
       - add_ssh_keys:
           fingerprints:
             - "e5:8c:51:5e:15:31:0e:c8:44:c9:fc:76:3a:4c:23:6e"
@@ -810,6 +812,7 @@ orbs:
   slack: circleci/slack@4.4.4
   clair-scanner: ovotech/clair-scanner@1.6.0
   snyk: snyk/snyk@1.1.2
+  node: circleci/node@5.0.2
 executors:
   docker-executor:
     docker:
