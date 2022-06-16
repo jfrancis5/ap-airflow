@@ -130,9 +130,9 @@ COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 
 # Pip install airflow and astro security manager
 COPY airflow_wheels/ /tmp/airflow_wheels
-RUN pip install /tmp/airflow_wheels/*.whl
 COPY ac_wheels/ /tmp/ac_wheels
-RUN pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
+RUN pip install /tmp/airflow_wheels/*.whl[SUBMODULES] --constraint /tmp/build-time-pip-constraints.txt \
+    && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
 
 
