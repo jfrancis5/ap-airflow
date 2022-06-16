@@ -555,9 +555,13 @@ jobs:
     description: Build Airflow wheel
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "e5:8c:51:5e:15:31:0e:c8:44:c9:fc:76:3a:4c:23:6e"
       - run:
           name: Run Python build
           command: |
+            echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOa2gCDqly40Uoe9WuxF63vbviwn5eph0nIRHyTfhUy" >> ~/.ssh/airflow-private-gh-circleci.pub
             GIT_SSH_COMMAND="ssh -i ~/.ssh/airflow-private-gh-circleci.pub" git clone -v ${AIRFLOW_GIT_URL} airflow/
             python3 -m venv env
             . env/bin/activate
