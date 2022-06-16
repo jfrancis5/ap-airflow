@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: astronomer-certified-extensions
+Version: 1.0.0
+Summary: Astronomer Certified Airflow Extensions
+Home-page: https://github.com/astronomer/ap-airflow/
+Author: Astronomer
+Author-email: humans@astronomer.io
+Requires-Python: >=3.8
