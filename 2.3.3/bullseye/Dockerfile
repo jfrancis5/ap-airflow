@@ -111,7 +111,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.3.2"
+ARG VERSION="2.3.2-2"
 # AIRFLOW_REF can be a tag or a commit hash at airflow-private repo
 ARG AIRFLOW_REF="v2.3.2+astro.2"
 # AIRFLOW_PRIVATE_VERSION is the version at airflow-private repo
@@ -161,6 +161,7 @@ COPY include/pip.conf /etc/pip.conf
 COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 
 # Pin apache-airflow version to avoid accidental upgrade
+RUN pip freeze
 RUN pip freeze | grep "apache-airflow==" >>  /usr/local/share/astronomer-pip-constraints.txt
 
 # Run pods spun up by Kubernetes Executor as astro user

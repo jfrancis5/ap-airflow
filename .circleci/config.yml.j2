@@ -33,8 +33,7 @@ workflows:
       {%- if edge_build %}
       {%- for airflow_ref in airflow_ref_list %}
       {%- set airflow_ref = airflow_ref -%}
-
-      # Build wheel for airflow
+      {%- if airflow_ref %}
       - build-airflow-wheel:
           name: build-airflow-wheel-{{ airflow_ref}}
           airflow_private_ref: {{ airflow_ref }}
@@ -43,6 +42,7 @@ workflows:
           filters:
             tags:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
+      {%- endif %}
       {%- endfor %}
       - build-package:
           requires:
@@ -96,9 +96,12 @@ workflows:
           {%- endif %}
           requires:
             - build-package
+
             {%- for airflow_ref in airflow_ref_list %}
             {%- set airflow_ref = airflow_ref -%}
+            {%- if airflow_ref %}
             - build-airflow-wheel-{{ airflow_ref}}
+            {%- endif %}
             {%- endfor %}
             {%- if edge_build %}
 
