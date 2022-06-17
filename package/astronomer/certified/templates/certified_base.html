@@ -2,48 +2,7 @@
 
 {% block head_css %}
   {{ super() }}
-  <style>
-    body {
-      font-family: GoodSans, "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-weight: 400;
-      font-size: 13px;
-    }
-
-    b,
-    strong {
-      font-weight: 500;
-    }
-
-    .navbar {
-      background-color: #4a4466 !important;
-    }
-
-    .brand-logo > path {
-      fill: #fffefd;
-    }
-
-    .navbar-nav > li > a {
-      color: #e2e0df;
-    }
-
-    .nav .open > a,
-    .navbar-nav > li > a:focus,
-    .navbar-nav > li > a:hover,
-    .nav > li:focus-within > a,
-    .nav > li > a:focus,
-    .nav > li > a:hover,
-    .nav .open > a:hover,
-    .nav .open > a:focus {
-      color: #fffefd;
-      background-color: #413c5a;
-    }
-
-    .navbar-user-icon {
-      color: #fffefd;
-      background-color: #1f1d2b;
-    }
-
-</style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='astro-theme.css') }}">
   {% endblock %}
 
   {% block footer %}

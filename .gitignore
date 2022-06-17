@@ -14,6 +14,8 @@
 .python-version
 .vscode/*
 __pycache__
+ac_wheels/
+airflow_wheels/
 build
 dist
 docs/_build
