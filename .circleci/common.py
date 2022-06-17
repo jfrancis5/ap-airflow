@@ -40,5 +40,7 @@ IMAGE_MAP = collections.OrderedDict([
     ("main-dev", ["bullseye"]),
 ])
 
+AIRFLOW_PRIVATE_REF=['v2.3.2+astro.2']
+
 # Airflow Versions for which we don't publish Python Wheels
 DEV_ALLOWLIST = []

@@ -21,7 +21,6 @@ workflows:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - static-checks
-
       {%- for ac_version, distributions in image_map.items() %}
       {%- set airflow_version = ac_version | get_airflow_version -%}
       {%- set airflow_version_wout_dev = airflow_version | replace('.dev', '') | replace('-dev', '') -%}
@@ -32,12 +31,19 @@ workflows:
 
       # {{ airflow_version }}
       {%- if edge_build %}
+      {%- for airflow_ref in airflow_ref_list %}
+      {%- set airflow_ref = airflow_ref -%}
+
+      # Build wheel for airflow
       - build-airflow-wheel:
+          name: build-airflow-wheel-{{ airflow_ref}}
+          airflow_private_ref: {{ airflow_ref }}
           requires:
             - static-checks
           filters:
             tags:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
+      {%- endfor %}
       - build-package:
           requires:
             - static-checks
@@ -90,8 +96,12 @@ workflows:
           {%- endif %}
           requires:
             - build-package
-            - build-airflow-wheel
+            {%- for airflow_ref in airflow_ref_list %}
+            {%- set airflow_ref = airflow_ref -%}
+            - build-airflow-wheel-{{ airflow_ref}}
+            {%- endfor %}
             {%- if edge_build %}
+
             - download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
             {%- endif %}
       - scan-trivy:
@@ -553,6 +563,10 @@ jobs:
   build-airflow-wheel:
     executor: machine-executor
     description: Build Airflow wheel
+    parameters:
+      airflow_private_ref:
+        description: The airflow private reference to build
+        type: string
     steps:
       - checkout
       - node/install:
@@ -569,7 +583,7 @@ jobs:
             . env/bin/activate
             pip install -U setuptools build
             cd airflow
-            git checkout v2.3.2+astro.2
+            git checkout "<< parameters.airflow_private_ref >>"
             npm install -g yarn
             python setup.py compile_assets bdist_wheel
       - persist_to_workspace:
