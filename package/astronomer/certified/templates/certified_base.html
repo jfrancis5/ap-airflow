@@ -2,7 +2,7 @@
 
 {% block head_css %}
   {{ super() }}
-  <link rel="stylesheet" href="{{ url_for('static', filename='astro-theme.css') }}">
+  <link rel="stylesheet" href="{{ url_for('.static', filename='astro-theme.css') }}">
   {% endblock %}
 
   {% block footer %}
