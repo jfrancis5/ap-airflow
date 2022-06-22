@@ -6,6 +6,7 @@
 *.pyc
 *.req
 *.srl
+*.whl
 *cache*
 *ipynb*
 .DS_Store
@@ -28,6 +29,8 @@ java/.settings/
 kubeconfig
 local.make
 out
+package/build/
+package/dist/
 target
 temp
 Untitled*

@@ -112,6 +112,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ARG VERSION="2.3.2-2"
+ARG AIRFLOW_VERSION="2.3.2"
 # ASTRONOMER_CERTIFIED_VERSION is the version in setup.py at airflow-private repo
 ARG ASTRONOMER_CERTIFIED_VERSION="2.3.2+astro.2"
 ENV ASTRONOMER_CERTIFIED_VERSION=${ASTRONOMER_CERTIFIED_VERSION}
@@ -127,7 +128,7 @@ COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 COPY airflow_wheels/ /tmp/airflow_wheels
 COPY ac_wheels/ /tmp/ac_wheels
 RUN pip install /tmp/airflow_wheels/${AIRFLOW_WHEEL}[$SUBMODULES] celery flower \
-     --constraint https://raw.githubusercontent.com/apache/airflow/constraints-2.3.2/constraints-3.9.txt \
+     --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_MAJOR_MINOR_VERSION}.txt \
     && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
 
