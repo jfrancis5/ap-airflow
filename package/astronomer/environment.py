@@ -1,0 +1,3 @@
+import os
+
+ASTRONOMER_CERTIFIED_VERSION = os.environ.get("ASTRONOMER_CERTIFIED_VERSION", "Unknown")

@@ -112,27 +112,22 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ARG VERSION="2.3.2-2"
-# AIRFLOW_PRIVATE_VERSION is the version at airflow-private repo
-ARG AIRFLOW_PRIVATE_VERSION="2.3.2+astro.2"
+# ASTRONOMER_CERTIFIED_VERSION is the version in setup.py at airflow-private repo
+ARG ASTRONOMER_CERTIFIED_VERSION="2.3.2+astro.2"
+ENV ASTRONOMER_CERTIFIED_VERSION=${ASTRONOMER_CERTIFIED_VERSION}
 ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
-ARG AIRFLOW_WHEEL="apache_airflow-${AIRFLOW_PRIVATE_VERSION}-py3-none-any.whl"
+ARG AIRFLOW_WHEEL="apache_airflow-${ASTRONOMER_CERTIFIED_VERSION}-py3-none-any.whl"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.
 COPY include/pip.conf /etc/pip.conf
 COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 
-# This constraints will be only used during docker-build
-# and won't be included in the final image
-# It is useful to install packages that are known to work but still allow users to
-# override versions (as opposed to entries in astronomer-pip-constraints.txt)
-COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
-
 # Pip install airflow and astro security manager
 COPY airflow_wheels/ /tmp/airflow_wheels
 COPY ac_wheels/ /tmp/ac_wheels
 RUN pip install /tmp/airflow_wheels/${AIRFLOW_WHEEL}[$SUBMODULES] celery flower \
-    --constraint --no-deps /tmp/build-time-pip-constraints.txt \
+     --constraint https://raw.githubusercontent.com/apache/airflow/constraints-2.3.2/constraints-3.9.txt \
     && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
 
@@ -165,7 +160,7 @@ COPY include/pip.conf /etc/pip.conf
 COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 
 # Pin apache-airflow version to avoid accidental upgrade
-RUN echo "apache-airflow==1!${AIRFLOW_PRIVATE_VERSION}" >>  /usr/local/share/astronomer-pip-constraints.txt
+RUN echo "apache-airflow==1!${ASTRONOMER_CERTIFIED_VERSION}" >>  /usr/local/share/astronomer-pip-constraints.txt
 
 # Run pods spun up by Kubernetes Executor as astro user
 # Lazily load all plugins, for astronomer-version-check-plugin
