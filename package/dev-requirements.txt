@@ -1,0 +1,9 @@
+# Requirements that can't be expressed in setup.py
+setuptools
+build
+
+--constraint=https://raw.githubusercontent.com/apache/airflow/constraints-2.3.2/constraints-3.9.txt
+apache-airflow == 2.3.2
+
+
+-e .[test]

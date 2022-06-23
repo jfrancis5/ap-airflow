@@ -21,6 +21,9 @@ workflows:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - static-checks
+      - test-extension-package:
+          requires:
+            - static-checks
       {%- for ac_version, distributions in image_map.items() %}
       {%- set airflow_version = ac_version | get_airflow_version -%}
       {%- set airflow_version_wout_dev = airflow_version | replace('.dev', '') | replace('-dev', '') -%}
@@ -38,7 +41,7 @@ workflows:
           name: build-airflow-wheel-{{ airflow_ref}}
           airflow_private_ref: {{ airflow_ref }}
           requires:
-            - static-checks
+            - test-extension-package
           filters:
             tags:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
@@ -46,7 +49,7 @@ workflows:
       {%- endfor %}
       - build-package:
           requires:
-            - static-checks
+            - test-extension-package
           filters:
             tags:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
@@ -546,6 +549,27 @@ jobs:
           paths:
             - << parameters.output_file >>
             - << parameters.file >>
+  test-extension-package:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - run:
+          name: Install test deps
+          command: |
+            # Use a virtual env to encapsulate everything in one folder for caching
+            python3 -m venv .venv
+            . .venv/bin/activate
+            cd package
+            pip install -r dev-requirements.txt
+      - run:
+          name: run_tests
+          command: |
+            . .venv/bin/activate
+            cd package
+            mkdir test-results
+            pytest --junitxml=test-results/junit.xml
+
   build-package:
     executor: machine-executor
     description: Build Python Package

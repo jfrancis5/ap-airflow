@@ -130,6 +130,7 @@ COPY ac_wheels/ /tmp/ac_wheels
 RUN pip install /tmp/airflow_wheels/${AIRFLOW_WHEEL}[$SUBMODULES] celery flower \
      --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_MAJOR_MINOR_VERSION}.txt \
     && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
+    && pip install --no-deps "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \
     && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
 
 

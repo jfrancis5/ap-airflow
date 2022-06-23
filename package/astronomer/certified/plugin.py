@@ -14,11 +14,13 @@ log = logging.getLogger(__name__)
 update_check_interval = conf.getint("astronomer", "update_check_interval", fallback=24 * 60 * 60)
 
 
+
+
 class AstronomerCertifiedPlugin(AirflowPlugin):
 
-    name = "astronomer_certified"
+    name = "astronomer_certified_extensions"
 
-    flask_blueprints = [ACThemeBlueprint(), UpdateAvailableBlueprint()] if update_check_interval != 0 else [ACThemeBlueprint()]
+    flask_blueprints = [ACThemeBlueprint()]+[UpdateAvailableBlueprint()] if update_check_interval != 0 else []
 
     @staticmethod
     def add_before_call(mod_or_cls, target, pre_fn):
