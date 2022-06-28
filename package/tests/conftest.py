@@ -8,7 +8,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "login_as")
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def client(app, user, request):
     """The test client, optionally logged in as a user of the given role
 
@@ -32,7 +32,6 @@ def client(app, user, request):
 
 @pytest.fixture(scope='module')
 def app():
-    os.environ['AIRFLOW__CORE__SQL_ALCHEMY_CONN'] = 'sqlite:////tmp/testdb.sqlite'
     os.environ['AIRFLOW__WEBSERVER__RBAC'] = 'True'
     from airflow.utils.db import initdb
     from airflow.www.app import create_app

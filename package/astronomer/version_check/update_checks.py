@@ -13,6 +13,7 @@ import lazy_object_proxy
 import pendulum
 import requests
 import sqlalchemy.exc
+from sqlalchemy import inspect
 from flask import Blueprint, current_app
 from flask_appbuilder.api import BaseApi, expose
 from flask_appbuilder.security.decorators import protect
@@ -313,7 +314,8 @@ class UpdateAvailableBlueprint(Blueprint, LoggingMixin):
 
         with create_session() as session:
             engine = session.get_bind(mapper=None, clause=None)
-            if not engine.has_table(AstronomerVersionCheck.__tablename__):
+            inspector  = inspect(engine)
+            if not inspector.has_table(AstronomerVersionCheck.__tablename__):
                 self.log.warning(
                     "AstronomerVersionCheck tables are missing (plugin not installed at upgradedb "
                     "time?). No update checks will be performed"
@@ -338,7 +340,7 @@ class UpdateAvailableBlueprint(Blueprint, LoggingMixin):
 def get_ac_version():
     from astronomer.environment import ASTRONOMER_CERTIFIED_VERSION
 
-    return ASTRONOMER_CERTIFIED_VERSION
+    return ASTRONOMER_CERTIFIED_VERSION.replace('+astro.','-')
 
 
 def get_user_string_data():

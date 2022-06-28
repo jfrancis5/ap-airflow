@@ -118,6 +118,7 @@ ARG ASTRONOMER_CERTIFIED_VERSION="2.3.2+astro.2"
 ENV ASTRONOMER_CERTIFIED_VERSION=${ASTRONOMER_CERTIFIED_VERSION}
 ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
 ARG AIRFLOW_WHEEL="apache_airflow-${ASTRONOMER_CERTIFIED_VERSION}-py3-none-any.whl"
+ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.2"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.

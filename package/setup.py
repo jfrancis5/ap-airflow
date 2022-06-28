@@ -10,7 +10,7 @@ setup(
     ],
     extras_require={
         'test': [
-            'pytest',
+            'pytest>=7.1.2',
             'pytest-flask',
             'pytest-mock',
             'pytest-flake8',

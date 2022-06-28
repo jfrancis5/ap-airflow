@@ -6,6 +6,7 @@ import logging
 from airflow.configuration import conf
 from airflow.plugins_manager import AirflowPlugin
 from airflow.utils.db import create_session
+from sqlalchemy import inspect
 
 from astronomer.version_check.update_checks import UpdateAvailableBlueprint
 
@@ -62,7 +63,8 @@ class AstronomerCertifiedPlugin(AirflowPlugin):
 
         with create_session() as session:
             engine = session.get_bind(mapper=None, clause=None)
-            if not engine.has_table(AstronomerVersionCheck.__tablename__):
+            inspector  = inspect(engine)
+            if not inspector.has_table(AstronomerVersionCheck.__tablename__):
                 log.warning(
                     "AstronomerVersionCheck tables are missing (plugin not installed at upgradedb "
                     "time?). No update checks will be performed"
@@ -79,7 +81,8 @@ class AstronomerCertifiedPlugin(AirflowPlugin):
         with create_session() as session:
             try:
                 engine = session.get_bind(mapper=None, clause=None)
-                if not engine.has_table(AstronomerVersionCheck.__tablename__) or not engine.has_table(
+                inspector  = inspect(engine)
+                if not inspector.has_table(AstronomerVersionCheck.__tablename__) or not inspector.has_table(
                     AstronomerAvailableVersion.__tablename__
                 ):
                     log.info("Creating DB tables for %s", __name__)
