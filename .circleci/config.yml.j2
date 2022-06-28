@@ -47,7 +47,7 @@ workflows:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
       {%- endif %}
       {%- endfor %}
-      - build-package:
+      - build-extension-package:
           requires:
             - static-checks
           filters:
@@ -98,7 +98,7 @@ workflows:
           image_name: "ap-airflow:{{ airflow_version }}"
           {%- endif %}
           requires:
-            - build-package
+            - build-extension-package
             - test-extension-package
             {%- for airflow_ref in airflow_ref_list %}
             {%- set airflow_ref = airflow_ref -%}
@@ -569,7 +569,7 @@ jobs:
             mkdir test-results
             pytest --junitxml=test-results/junit.xml
 
-  build-package:
+  build-extension-package:
     executor: machine-executor
     description: Build Python Package
     steps:

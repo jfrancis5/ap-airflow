@@ -23,8 +23,9 @@ class ACThemeBlueprint(Blueprint, LoggingMixin):
     def __init__(self):
 
         super().__init__(
-            "astronomer_certified",
+            "AstronomerCertifiedTheme",
             __name__,
+            static_url_path='/astro',
             static_folder="static",
             template_folder=os.path.join(os.path.dirname(__file__), "templates"),
         )
