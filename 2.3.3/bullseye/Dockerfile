@@ -111,14 +111,12 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.3.2-2"
 ARG AIRFLOW_VERSION="2.3.2"
 # ASTRONOMER_CERTIFIED_VERSION is the version in setup.py at airflow-private repo
 ARG ASTRONOMER_CERTIFIED_VERSION="2.3.2+astro.2"
 ENV ASTRONOMER_CERTIFIED_VERSION=${ASTRONOMER_CERTIFIED_VERSION}
 ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
 ARG AIRFLOW_WHEEL="apache_airflow-${ASTRONOMER_CERTIFIED_VERSION}-py3-none-any.whl"
-ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.2"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.
@@ -131,7 +129,6 @@ COPY ac_wheels/ /tmp/ac_wheels
 RUN pip install /tmp/airflow_wheels/${AIRFLOW_WHEEL}[$SUBMODULES] celery flower \
      --constraint https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_MAJOR_MINOR_VERSION}.txt \
     && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
-    && pip install --no-deps "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \
     && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
 
 
@@ -152,7 +149,6 @@ ARG AIRFLOW_VERSION="2.3.3"
 ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
 LABEL io.astronomer.docker.airflow.version="${AIRFLOW_VERSION}"
 LABEL io.astronomer.docker.ac.version="${VERSION}"
-LABEL io.astronomer.docker.fab_security_manager.version="${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
 
 # Copy all installed python modules. This gets us the compiled without needing dev installed
 COPY --from=devel /usr/local/lib/python${PYTHON_MAJOR_MINOR_VERSION}/site-packages /usr/local/lib/python${PYTHON_MAJOR_MINOR_VERSION}/site-packages

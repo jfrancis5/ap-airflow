@@ -41,7 +41,7 @@ workflows:
           name: build-airflow-wheel-{{ airflow_ref}}
           airflow_private_ref: {{ airflow_ref }}
           requires:
-            - test-extension-package
+            - static-checks
           filters:
             tags:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
@@ -49,7 +49,7 @@ workflows:
       {%- endfor %}
       - build-package:
           requires:
-            - test-extension-package
+            - static-checks
           filters:
             tags:
               only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
@@ -99,7 +99,7 @@ workflows:
           {%- endif %}
           requires:
             - build-package
-
+            - test-extension-package
             {%- for airflow_ref in airflow_ref_list %}
             {%- set airflow_ref = airflow_ref -%}
             {%- if airflow_ref %}
@@ -557,7 +557,6 @@ jobs:
       - run:
           name: Install test deps
           command: |
-            # Use a virtual env to encapsulate everything in one folder for caching
             python3 -m venv .venv
             . .venv/bin/activate
             cd package

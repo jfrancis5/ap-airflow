@@ -32,7 +32,6 @@ def client(app, user, request):
 
 @pytest.fixture(scope='module')
 def app():
-    os.environ['AIRFLOW__WEBSERVER__RBAC'] = 'True'
     from airflow.utils.db import initdb
     from airflow.www.app import create_app
 
