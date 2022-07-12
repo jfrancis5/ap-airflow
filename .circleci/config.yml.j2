@@ -21,9 +21,6 @@ workflows:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - static-checks
-      - test-extension-package:
-          requires:
-            - static-checks
       {%- for ac_version, distributions in image_map.items() %}
       {%- set airflow_version = ac_version | get_airflow_version -%}
       {%- set airflow_version_wout_dev = airflow_version | replace('.dev', '') | replace('-dev', '') -%}
@@ -34,25 +31,6 @@ workflows:
 
       # {{ airflow_version }}
       {%- if edge_build %}
-      {%- for airflow_ref in airflow_ref_list %}
-      {%- set airflow_ref = airflow_ref -%}
-      {%- if airflow_ref %}
-      - build-airflow-wheel:
-          name: build-airflow-wheel-{{ airflow_ref}}
-          airflow_private_ref: {{ airflow_ref }}
-          requires:
-            - static-checks
-          filters:
-            tags:
-              only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
-      {%- endif %}
-      {%- endfor %}
-      - build-extension-package:
-          requires:
-            - static-checks
-          filters:
-            tags:
-              only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
       - download-file:
           name: download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
           url: https://pip.astronomer.io/simple/astronomer-certified/{{ ext_build_filename }}
@@ -98,16 +76,8 @@ workflows:
           image_name: "ap-airflow:{{ airflow_version }}"
           {%- endif %}
           requires:
-            - build-extension-package
-            - test-extension-package
-            {%- for airflow_ref in airflow_ref_list %}
-            {%- set airflow_ref = airflow_ref -%}
-            {%- if airflow_ref %}
-            - build-airflow-wheel-{{ airflow_ref}}
-            {%- endif %}
-            {%- endfor %}
+            
             {%- if edge_build %}
-
             - download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
             {%- endif %}
       - scan-trivy:
@@ -549,73 +519,7 @@ jobs:
           paths:
             - << parameters.output_file >>
             - << parameters.file >>
-  test-extension-package:
-    docker:
-      - image: cimg/python:3.9
-    steps:
-      - checkout
-      - run:
-          name: Install test deps
-          command: |
-            python3 -m venv .venv
-            . .venv/bin/activate
-            cd package
-            pip install -r dev-requirements.txt
-      - run:
-          name: run_tests
-          command: |
-            . .venv/bin/activate
-            cd package
-            mkdir test-results
-            pytest --junitxml=test-results/junit.xml
 
-  build-extension-package:
-    executor: machine-executor
-    description: Build Python Package
-    steps:
-      - checkout
-      - run:
-          name: Run Python build
-          command: |
-            python3 -m venv env
-            . env/bin/activate
-            pip install -U setuptools build
-            cd package
-            python -m build -w
-      - persist_to_workspace:
-          root: .
-          paths:
-            - package/dist/
-  build-airflow-wheel:
-    executor: machine-executor
-    description: Build Airflow wheel
-    parameters:
-      airflow_private_ref:
-        description: The airflow private reference to build
-        type: string
-    steps:
-      - checkout
-      - node/install:
-          node-version: '16.15'
-      - add_ssh_keys:
-          fingerprints:
-            - "e5:8c:51:5e:15:31:0e:c8:44:c9:fc:76:3a:4c:23:6e"
-      - run:
-          name: Run Python build
-          command: |
-            echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKOa2gCDqly40Uoe9WuxF63vbviwn5eph0nIRHyTfhUy" >> ~/.ssh/airflow-private-gh-circleci.pub
-            GIT_SSH_COMMAND="ssh -i ~/.ssh/airflow-private-gh-circleci.pub" git clone -v ${AIRFLOW_GIT_URL} airflow/
-            python3 -m venv env
-            . env/bin/activate
-            pip install -U setuptools build
-            cd airflow
-            git checkout "<< parameters.airflow_private_ref >>"
-            npm install -g yarn
-            python setup.py compile_assets bdist_wheel
-      - persist_to_workspace:
-          root: .
-          paths:
-            - airflow/dist/
   build:
     executor: docker-executor
     description: Build Airflow images

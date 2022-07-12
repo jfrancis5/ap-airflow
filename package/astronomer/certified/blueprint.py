@@ -5,14 +5,13 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from flask import Blueprint
 
 def get_versions():
-    from astronomer.environment import ASTRONOMER_CERTIFIED_VERSION
     try:
         airflow_version = airflow.__version__
         airflow_upstream_version = airflow_version.split('.dev')[0].split('+astro')[0]
     except Exception:
         airflow_version = None
         airflow_upstream_version = None
-    ac_version = ASTRONOMER_CERTIFIED_VERSION
+    ac_version = os.environ.get("ASTRONOMER_CERTIFIED_VERSION", "Unknown")
     return ac_version, airflow_upstream_version
 
 
@@ -38,7 +37,7 @@ class ACThemeBlueprint(Blueprint, LoggingMixin):
             'airflow_upstream_version': airflow_upstream_version,
         }
 
-    def register(self, app, options, first_registration):
+    def register(self, app, *args, **kwargs):
         """
         Re-configure Flask to use our customized layout (that includes the call-home JS)
         Called by Flask when registering the blueprint to the app
@@ -81,4 +80,4 @@ class ACThemeBlueprint(Blueprint, LoggingMixin):
         # Let us inject variables into the Jinja context
         self.app_context_processor(self.new_template_vars)
 
-        super().register(app, options, first_registration)
+        super().register(app, *args, **kwargs)

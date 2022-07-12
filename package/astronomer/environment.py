@@ -1,3 +1,0 @@
-import os
-
-ASTRONOMER_CERTIFIED_VERSION = os.environ.get("ASTRONOMER_CERTIFIED_VERSION", "2.3.2+astro.2")

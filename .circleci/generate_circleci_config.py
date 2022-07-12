@@ -13,7 +13,6 @@ from common import (
     get_airflow_version,
     IMAGE_MAP,
     is_edge_build,
-    AIRFLOW_PRIVATE_REF,
 )
 
 
@@ -31,7 +30,6 @@ def generate_circleci_config():
     config = template.render(
         image_map=IMAGE_MAP,
         dev_allowlist=DEV_ALLOWLIST,
-        airflow_ref_list=AIRFLOW_PRIVATE_REF,
     )
     print(config)
 

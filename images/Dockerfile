@@ -147,8 +147,14 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+<<<<<<< HEAD:2.3.3/bullseye/Dockerfile
+ARG VERSION="2.3.3-1"
+ARG AIRFLOW_VERSION="2.3.3"
+ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
+=======
 ARG VERSION="2.3.3-1-*"
 ARG AIRFLOW_VERSION="2.3.3"
+>>>>>>> Remove version check and move dev to new folder:images/Dockerfile
 LABEL io.astronomer.docker.airflow.version="${AIRFLOW_VERSION}"
 LABEL io.astronomer.docker.ac.version="${VERSION}"
 
