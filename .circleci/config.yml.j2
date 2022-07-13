@@ -21,6 +21,7 @@ workflows:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - static-checks
+
       {%- for ac_version, distributions in image_map.items() %}
       {%- set airflow_version = ac_version | get_airflow_version -%}
       {%- set airflow_version_wout_dev = airflow_version | replace('.dev', '') | replace('-dev', '') -%}
@@ -76,7 +77,7 @@ workflows:
           image_name: "ap-airflow:{{ airflow_version }}"
           {%- endif %}
           requires:
-            
+            - static-checks
             {%- if edge_build %}
             - download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
             {%- endif %}
@@ -311,6 +312,7 @@ workflows:
           file: {{ ext_build_filename }}
           output_file: extra-tags-{{ airflow_version_wout_dev }}.txt
       {%- endif %}{# edge_build #}
+
       {%- for distribution in distributions %}
       - build:
           name: build-{{ airflow_version }}-{{ distribution }}
@@ -348,7 +350,6 @@ workflows:
           {%- if edge_build %}
           requires:
             - download-latest-{{ airflow_version_wout_dev }}-build-info
-
           {%- endif %}
       - scan-trivy:
           name: scan-trivy-{{ airflow_version }}-{{ distribution }}-onbuild
@@ -519,7 +520,6 @@ jobs:
           paths:
             - << parameters.output_file >>
             - << parameters.file >>
-
   build:
     executor: docker-executor
     description: Build Airflow images
@@ -756,11 +756,10 @@ orbs:
   slack: circleci/slack@4.4.4
   clair-scanner: ovotech/clair-scanner@1.6.0
   snyk: snyk/snyk@1.1.2
-  node: circleci/node@5.0.2
 executors:
   docker-executor:
     docker:
-      - image: cimg/python:3.10
+      - image: circleci/python:3
   machine-executor:
     machine:
       image: ubuntu-2004:202010-01
@@ -788,17 +787,8 @@ commands:
         default: false
     steps:
       - checkout
-      - attach_workspace:
-          at: {{ workspace_prefix }}
       - setup_remote_docker:
           docker_layer_caching: true
-      - run:
-          name: Copy wheels into place
-          command: |
-            mkdir -p "<< parameters.airflow_version >>/<< parameters.distribution_name >>/ac_wheels/"
-            mkdir -p "<< parameters.airflow_version >>/<< parameters.distribution_name >>/airflow_wheels/"
-            cp {{ workspace_prefix }}/package/dist/*.whl "<< parameters.airflow_version >>/<< parameters.distribution_name >>/ac_wheels/"
-            cp {{ workspace_prefix }}/airflow/dist/*.whl "<< parameters.airflow_version >>/<< parameters.distribution_name >>/airflow_wheels/"
       - docker-build:
           image_name: "<< parameters.image_name >>"
           path: "<< parameters.airflow_version >>/<< parameters.distribution_name >>"
