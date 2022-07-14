@@ -115,6 +115,7 @@ ARG VERSION="2.3.3-1-*"
 # Add cncf.kubernetes later
 ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
 ARG AIRFLOW_MODULE="apache-airflow[${SUBMODULES}]==$VERSION"
+ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.
@@ -133,8 +134,8 @@ RUN pip install "${AIRFLOW_MODULE}" celery flower \
      --constraint /tmp/build-time-pip-constraints.txt \
      # Remove the no-deps flag when providers don't depend on certified anymore
     && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
-    && pip install astronomer-airflow-version-check~=1.0.10 \
-    && pip install astronomer-fab-security-manager~=1.9.3 \
+    && pip install "astronomer-airflow-version-check~=1.0.10" \
+    && pip install "astronomer-fab-security-managerr==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \
     && pip install /tmp/dist/astronomer_certified_extensions*.whl
 
 
@@ -152,8 +153,10 @@ RUN apt-get update \
 
 ARG VERSION="2.3.3-1-*"
 ARG AIRFLOW_VERSION="2.3.3"
+ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
 LABEL io.astronomer.docker.airflow.version="${AIRFLOW_VERSION}"
 LABEL io.astronomer.docker.ac.version="${VERSION}"
+LABEL io.astronomer.docker.fab_security_manager.version="${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
 
 # Copy all installed python modules. This gets us the compiled without needing dev installed
 COPY --from=devel /usr/local/lib/python${PYTHON_MAJOR_MINOR_VERSION}/site-packages /usr/local/lib/python${PYTHON_MAJOR_MINOR_VERSION}/site-packages
