@@ -21,7 +21,12 @@ workflows:
         equal: [ scheduled_pipeline, << pipeline.trigger_source >> ]
     jobs:
       - static-checks
-
+      - build-package:
+          requires:
+            - static-checks
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+(\-[\w\d]+)?$/
       {%- for ac_version, distributions in image_map.items() %}
       {%- set airflow_version = ac_version | get_airflow_version -%}
       {%- set airflow_version_wout_dev = airflow_version | replace('.dev', '') | replace('-dev', '') -%}
@@ -77,7 +82,7 @@ workflows:
           image_name: "ap-airflow:{{ airflow_version }}"
           {%- endif %}
           requires:
-            - static-checks
+            - build-package
             {%- if edge_build %}
             - download-latest-{{ airflow_version_wout_dev }}-build-metadata-file
             {%- endif %}
@@ -520,6 +525,23 @@ jobs:
           paths:
             - << parameters.output_file >>
             - << parameters.file >>
+  build-package:
+    executor: machine-executor
+    description: Build Python Package
+    steps:
+      - checkout
+      - run:
+          name: Run Python build
+          command: |
+            python3 -m venv env
+            . env/bin/activate
+            pip install -U setuptools build
+            cd package
+            python -m build -w
+      - persist_to_workspace:
+          root: .
+          paths:
+            - package/dist/
   build:
     executor: docker-executor
     description: Build Airflow images
@@ -787,8 +809,15 @@ commands:
         default: false
     steps:
       - checkout
+      - attach_workspace:
+          at: {{ workspace_prefix }}
       - setup_remote_docker:
           docker_layer_caching: true
+      - run:
+          name: Copy wheels into place
+          command: |
+            mkdir -p "<< parameters.airflow_version >>/<< parameters.distribution_name >>/dist/"
+            cp {{ workspace_prefix }}/package/dist/*.whl "<< parameters.airflow_version >>/<< parameters.distribution_name >>/dist/"
       - docker-build:
           image_name: "<< parameters.image_name >>"
           path: "<< parameters.airflow_version >>/<< parameters.distribution_name >>"

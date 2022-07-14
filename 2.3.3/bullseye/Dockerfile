@@ -127,12 +127,14 @@ COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 
 # Pip install airflow and astro security manager
-COPY ac_wheel/ /tmp/ac_wheel
-RUN pip install --upgrade pip && pip install "${AIRFLOW_MODULE}" celery flower \
+COPY dist/ /tmp/dist/
+RUN pip install "${AIRFLOW_MODULE}" celery flower \
      --constraint /tmp/build-time-pip-constraints.txt \
-    && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
-    && pip install astronomer-airflow-version-check==1.0.10 \
-    && pip install /tmp/ac_wheels/astronomer_certified_extensions*.whl
+     # Remove the no-deps flag when providers don't depend on certified anymore
+    && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
+    && pip install astronomer-airflow-version-check~=1.0.10 \
+    && pip install astronomer-fab-security-manager~=1.9.3 \
+    && pip install /tmp/dist/astronomer_certified_extensions*.whl
 
 
 ## move this to same layer as airflow because its from tag.
@@ -197,6 +199,8 @@ RUN mkdir -pv /usr/share/man/man1 && mkdir -pv /usr/share/man/man7
 
 # Environment Variables for Partner Programs
 ENV AIRFLOW_SNOWFLAKE_PARTNER=ASTRONOMER
+# Environment Variable for UI version display
+ENV ASTRONOMER_CERTIFIED_VERSION=${VERSION}
 
 # Though this is set here we currently override this in the helm template, so
 # this _might_ not have any effect once deployed. The /entrypoint script copes
