@@ -15,12 +15,11 @@
 .python-version
 .vscode/*
 __pycache__
-ac_wheels/
-airflow_wheels/
 build
 dist
 docs/_build
 docs/README.md
+env
 env
 in
 java/.classpath
@@ -35,4 +34,3 @@ target
 temp
 Untitled*
 venv
-env
