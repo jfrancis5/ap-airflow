@@ -111,7 +111,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.3.3-2-*"
+ARG VERSION="2.3.3-1-*"
 # Add cncf.kubernetes later
 ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
 ARG AIRFLOW_MODULE="apache-airflow[${SUBMODULES}]==$VERSION"
@@ -150,7 +150,7 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.3.3-2-*"
+ARG VERSION="2.3.3-1-*"
 ARG AIRFLOW_VERSION="2.3.3"
 LABEL io.astronomer.docker.airflow.version="${AIRFLOW_VERSION}"
 LABEL io.astronomer.docker.ac.version="${VERSION}"
