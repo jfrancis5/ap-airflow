@@ -132,7 +132,6 @@ COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 COPY dist/ /tmp/dist/
 RUN pip install "${AIRFLOW_MODULE}" celery flower \
      --constraint /tmp/build-time-pip-constraints.txt \
-     # Remove the no-deps flag when providers don't depend on certified anymore
     && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install "astronomer-airflow-version-check~=1.0.10" \
     && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \

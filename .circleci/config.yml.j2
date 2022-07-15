@@ -531,11 +531,24 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install test deps
+          command: |
+            # Use a virtual env to encapsulate everything in one folder for caching
+            python3 -m venv .venv
+            . .venv/bin/activate
+            pip install -U setuptools build wheel
+            cd package
+            pip install -r dev-requirements.txt
+      - run:
+          name: run_tests
+          command: |
+            . .venv/bin/activate
+            mkdir test-results
+            pytest --junitxml=test-results/junit.xml
+      - run:
           name: Run Python build
           command: |
-            python3 -m venv env
-            . env/bin/activate
-            pip install -U setuptools build
+            . .venv/bin/activate
             cd package
             python -m build -w
       - persist_to_workspace:
