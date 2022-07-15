@@ -112,9 +112,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ARG VERSION="2.3.3-1-*"
-# Add cncf.kubernetes later
-ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
+ARG SUBMODULES="async,azure,amazon,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
 ARG AIRFLOW_MODULE="apache-airflow[${SUBMODULES}]==$VERSION"
+ARG AIRFLOW_VERSION="2.3.3"
 ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
 
 # Make pip look at our pip repo too, and force it to install these specific
@@ -133,9 +133,9 @@ COPY dist/ /tmp/dist/
 RUN pip install "${AIRFLOW_MODULE}" celery flower \
      --constraint /tmp/build-time-pip-constraints.txt \
      # Remove the no-deps flag when providers don't depend on certified anymore
-    && pip install --no-deps "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
+    && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
     && pip install "astronomer-airflow-version-check~=1.0.10" \
-    && pip install "astronomer-fab-security-managerr==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \
+    && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \
     && pip install /tmp/dist/astronomer_certified_extensions*.whl
 
 
