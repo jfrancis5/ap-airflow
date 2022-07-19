@@ -20,11 +20,12 @@ class AstronomerCertifiedPlugin(AirflowPlugin):
 
         setattr(mod_or_cls, target, run_before)
 
+    @classmethod
     def on_load(cls, *args, **kwargs):
         # Borrowed concept from version_check plugin.
-        # Seed the log template table before running the scheduler loop
-        import airflow.jobs.scheduler_job
+        # Seed the log template table before synchronizing the template
+        import airflow.utils.db
         cls.add_before_call(
-        airflow.jobs.scheduler_job.SchedulerJob, '_run_scheduler_loop',
+        airflow.utils.db, 'synchronize_log_template',
         seed_log_template
         )

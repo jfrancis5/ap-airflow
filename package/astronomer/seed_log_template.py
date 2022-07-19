@@ -16,7 +16,7 @@ def seed_log_template(*, session: Session = NEW_SESSION) -> None:
         metadata = reflect_tables([LogTemplate], session)
         log_template_table = metadata.tables.get(LogTemplate.__tablename__)
         return log_template_table is not None
-    if not log_template_exists(session):
+    if not log_template_exists:
         log.info('Log template table does not exist (added in 2.3.0); skipping log template seeding.')
         return
 
