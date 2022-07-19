@@ -1,8 +1,24 @@
 import os
 import airflow
 from airflow.utils.log.logging_mixin import LoggingMixin
+from packaging.version import Version
 
 from flask import Blueprint
+
+def transform_airflow_version(airflow_ver):
+
+    parsed = Version(airflow_ver)
+
+    ver = '.'.join(str(x) for x in parsed.release)
+
+    if parsed.local:
+        local = parsed._version.local[1]
+        ver += '.post' + str(local)
+
+    if parsed.is_devrelease:
+        ver += '.dev' + str(parsed.dev)
+
+    return ver
 
 def get_versions():
     try:
@@ -12,6 +28,8 @@ def get_versions():
         airflow_version = None
         airflow_upstream_version = None
     ac_version = os.environ.get("ASTRONOMER_CERTIFIED_VERSION", "Unknown")
+    if 'astro' in ac_version:
+        ac_version = transform_airflow_version(ac_version)
     return ac_version, airflow_upstream_version
 
 

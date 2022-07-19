@@ -17,7 +17,7 @@ import testinfra
 from time import sleep
 from enum import Enum
 
-from packaging.version import parse as semantic_version
+from packaging.version import parse as semantic_version, Version
 
 
 class ImageType(Enum):
@@ -28,6 +28,22 @@ class ImageType(Enum):
 airflow_version = os.environ.get("AIRFLOW_VERSION")
 airflow_2 = True if airflow_version.startswith("2") else False
 is_edge_build = os.environ.get("EDGE_BUILD") == "true"
+
+
+def transform_airflow_version(airflow_ver):
+
+    parsed = Version(airflow_ver)
+
+    ver = '.'.join(str(x) for x in parsed.release)
+
+    if parsed.local:
+        local = parsed._version.local[1]
+        ver += '.post' + str(local)
+
+    if parsed.is_devrelease:
+        ver += '.dev' + str(parsed.dev)
+
+    return ver
 
 
 def test_airflow_in_path(webserver):
@@ -77,6 +93,9 @@ def test_version(webserver, docker_client):
     assert ac_version_output
     assert "+astro." in ac_version_output
     ac_version_postfix_output = ac_version_output.rsplit('+astro.')[-1]
+
+    if 'astro' in ac_version:
+        ac_version = transform_airflow_version(ac_version)
 
     # Example: 2.0.2-dev2 2.0.2.post2.dev2
     if "dev" in ac_version:
