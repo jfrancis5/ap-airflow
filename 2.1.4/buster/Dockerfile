@@ -110,11 +110,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.1.4-9"
+ARG VERSION
 ARG SUBMODULES="async,azure,amazon,celery,elasticsearch,google,password,cncf.kubernetes,mysql,postgres,redis,slack,ssh,statsd,virtualenv"
-ARG AIRFLOW_MODULE="astronomer_certified[${SUBMODULES}]==$VERSION"
+ARG AIRFLOW_MODULE="apache_airflow[${SUBMODULES}]==$VERSION"
 ARG AIRFLOW_VERSION="2.1.4"
-ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.2"
+ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
 
 # Make pip look at our pip repo too, and force it to install these specific
 # versions when ever it installs a module.
@@ -128,10 +128,13 @@ COPY include/pip-constraints.txt /usr/local/share/astronomer-pip-constraints.txt
 COPY build-time-pip-constraints.txt /tmp/build-time-pip-constraints.txt
 
 # Pip install airflow and astro security manager
+COPY dist/ /tmp/dist/
 RUN pip install "${AIRFLOW_MODULE}" \
         --constraint /tmp/build-time-pip-constraints.txt \
     && pip install "https://github.com/astronomer/astronomer-airflow-scripts/releases/download/v0.0.5/astronomer_airflow_scripts-0.0.5-py3-none-any.whl" \
-    && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
+    && pip install "astronomer-airflow-version-check~=1.0.10" \
+    && pip install "astronomer-fab-security-manager==${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}" \
+    && pip install /tmp/dist/astronomer_certified_extensions*.whl
 
 
 ## move this to same layer as airflow because its from tag.
@@ -146,9 +149,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG VERSION="2.1.4-9"
+ARG VERSION
 ARG AIRFLOW_VERSION="2.1.4"
-ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.2"
+ARG ASTRONOMER_FAB_SECURITY_MANAGER_VERSION="1.9.3"
 LABEL io.astronomer.docker.airflow.version="${AIRFLOW_VERSION}"
 LABEL io.astronomer.docker.ac.version="${VERSION}"
 LABEL io.astronomer.docker.fab_security_manager.version="${ASTRONOMER_FAB_SECURITY_MANAGER_VERSION}"
@@ -198,6 +201,8 @@ RUN mkdir -pv /usr/share/man/man1 && mkdir -pv /usr/share/man/man7
 
 # Environment Variables for Partner Programs
 ENV AIRFLOW_SNOWFLAKE_PARTNER=ASTRONOMER
+# Environment Variable for UI version display
+ENV ASTRONOMER_CERTIFIED_VERSION=${VERSION}
 
 # Though this is set here we currently override this in the helm template, so
 # this _might_ not have any effect once deployed. The /entrypoint script copes

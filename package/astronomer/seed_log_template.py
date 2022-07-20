@@ -1,17 +1,18 @@
 import logging
-from sqlalchemy.orm.session import Session
-from airflow.utils.db import reflect_tables
-from airflow.models.tasklog import LogTemplate
-from airflow.utils.session import provide_session, NEW_SESSION
+from airflow.utils.session import provide_session
 
 log = logging.getLogger(__name__)
 
 @provide_session
-def seed_log_template(*, session: Session = NEW_SESSION) -> None:
+def seed_log_template(*, session=None) -> None:
     """Add historical log_template record for ES log_id_template
     This only adds the historical values if the log_template table is empty -
     new install or initial upgrade to 2.3.0+.
     """
+
+    from airflow.utils.db import reflect_tables
+    from airflow.models.tasklog import LogTemplate
+
     def log_template_exists():
         metadata = reflect_tables([LogTemplate], session)
         log_template_table = metadata.tables.get(LogTemplate.__tablename__)

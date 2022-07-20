@@ -1,4 +1,5 @@
 import functools
+import os
 from airflow.plugins_manager import AirflowPlugin
 from astronomer.certified.blueprint import ACThemeBlueprint
 from astronomer.seed_log_template import seed_log_template
@@ -24,8 +25,10 @@ class AstronomerCertifiedPlugin(AirflowPlugin):
     def on_load(cls, *args, **kwargs):
         # Borrowed concept from version_check plugin.
         # Seed the log template table before synchronizing the template
-        import airflow.utils.db
-        cls.add_before_call(
-        airflow.utils.db, 'synchronize_log_template',
-        seed_log_template
-        )
+        version = os.environ.get("ASTRONOMER_CERTIFIED_VERSION", "Unknown")
+        if '2.1.4' not in version:
+            import airflow.utils.db
+            cls.add_before_call(
+            airflow.utils.db, 'synchronize_log_template',
+            seed_log_template
+            )
